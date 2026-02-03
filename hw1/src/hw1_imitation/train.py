@@ -31,7 +31,7 @@ class TrainConfig:
     data_dir: Path = Path("data")
 
     # The policy type -- either MSE or flow.
-    policy_type: PolicyType = "mse"
+    policy_type: PolicyType = "flow"
     # The number of denoising steps to use for the flow policy (has no effect for the MSE policy).
     flow_num_steps: int = 10
     # The action chunk size.
@@ -123,34 +123,39 @@ def run_training(config: TrainConfig) -> None:
         exp_name += f"_{config.exp_name}"
     log_dir = Path(LOGDIR_PREFIX) / exp_name
     wandb.init(
-        project=config.wandb_project, config=config_to_dict(config), name=exp_name
+        entity="kavishkondap-university-of-california-berkeley", project=config.wandb_project, config=config_to_dict(config), name=exp_name
     )
     logger = Logger(log_dir)
 
     ### TODO: PUT YOUR MAIN TRAINING LOOP HERE ###
     model.compile()
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
 
     losses = []
+    logger.log({"loss":-1, "eval/mean_reward":-1}, step=0)
+
     num_steps = 0
     for epoch in range(config.num_epochs):
         
         for batch_idx, (batch_state, batch_action_chunk) in enumerate(loader):
-            normalized_batch_state, normalized_batch_action_chunk = normalizer.normalize_state(batch_state), normalizer.normalize_action(batch_action_chunk)
-            loss = model.compute_loss(normalized_batch_state, normalized_batch_action_chunk)
+            loss = model.compute_loss(batch_state, batch_action_chunk)
             optimizer.zero_grad()
-            loss.backward
+            loss.backward()
             optimizer.step()
 
             print(f"Epoch {epoch}, Batch {batch_idx}: Loss = {loss.item():.2f}")
             losses.append(loss.item())
-            wandb.log({"loss":loss.item()})
-            num_steps += 1
+            if num_steps % config.log_interval == 0:
+                logger.log({"loss":loss.item()}, step=num_steps)
         
-            if num_steps % config.eval_interval:
+            if num_steps % config.eval_interval == 0:
                 print("Evaluating policy")
-                evaluate_policy(model, normalizer, device, config.chunk_size, config.video_size, config.num_video_episodes, config.flow_num_steps, num_steps)
+                evaluate_policy(model, normalizer, device, config.chunk_size, config.video_size, config.num_video_episodes, config.flow_num_steps, num_steps, logger)
 
+            num_steps += 1
+
+    print("Final Eval")
+    evaluate_policy(model, normalizer, device, config.chunk_size, config.video_size, config.num_video_episodes, config.flow_num_steps, num_steps, logger)
 
     logger.dump_for_grading()
 
