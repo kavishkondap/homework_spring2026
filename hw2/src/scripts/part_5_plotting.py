@@ -14,6 +14,14 @@ ckpt_dirs = {
     "Lambda = 0.99":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/LunarLander-v2_lunar_lander_lambda0.99_sd1_20260225_190317",
     "Lambda = 1":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/LunarLander-v2_lunar_lander_lambda1_sd1_20260225_190518"
 }
+
+ckpt_dirs = {
+    "Lambda = 0":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/LunarLander-v2_lunar_lander_lambda0_sd1_20260225_214451",
+    "Lambda = 0.95":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/LunarLander-v2_lunar_lander_lambda0.95_sd1_20260225_214512",
+    "Lambda = 0.98":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/LunarLander-v2_lunar_lander_lambda0.98_sd1_20260225_214527",
+    "Lambda = 0.99":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/LunarLander-v2_lunar_lander_lambda0.99_sd1_20260225_214544",
+    "Lambda = 1":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/LunarLander-v2_lunar_lander_lambda1_sd1_20260225_214723"
+}
 # ckpt_dirs = {
 #     "Standard":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/CartPole-v0_cartpole_sd1_20260225_153621",
 #     "RTG":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/CartPole-v0_cartpole_rtg_sd1_20260225_152411",

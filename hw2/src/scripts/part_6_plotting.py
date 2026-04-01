@@ -5,11 +5,12 @@ from pathlib import Path
 PLOT_X = "Train_EnvstepsSoFar"
 PLOT_Y = "Eval_AverageReturn"
 
-SAVE_NAME="part_6.png"
+SAVE_NAME="part_6_2.png"
 
 ckpt_dirs = {
     "Default Hyperparams":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/InvertedPendulum-v4_pendulum_sd1_20260225_191503",
-    "Tuned Hyperparams":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/InvertedPendulum-v4_pendulum_5_sd1_20260225_193105",
+    # "Tuned Hyperparams":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/InvertedPendulum-v4_pendulum_5_sd1_20260225_193105",
+    "Tuned Hyperparams":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/InvertedPendulum-v4_pendulum_6_sd1_20260225_212834"
 }
 # ckpt_dirs = {
 #     "Standard":"/Users/kavish/Desktop/KAVISH/Berkeley/Sophomore Year/cs185/homework_spring2026/hw2/exp/CartPole-v0_cartpole_sd1_20260225_153621",
@@ -33,7 +34,7 @@ for label, dir in ckpt_dirs.items():
     fig.add_trace(go.Scatter(x=df[PLOT_X], y=df[PLOT_Y], mode="lines", name=label))
 
 fig.update_layout(
-    title="Pendulum Policy Hyperparameter",
+    title="Pendulum Policy Hyperparameter Tuning",
     xaxis_title=PLOT_X,
     yaxis_title=PLOT_Y
 )
