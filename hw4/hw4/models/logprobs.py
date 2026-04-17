@@ -43,7 +43,56 @@ def compute_per_token_logprobs(
     #
     # Respect enable_grad: when enable_grad=False this function should not build an
     # autograd graph.
-    raise NotImplementedError("student TODO: compute_per_token_logprobs")
+    
+    # def get_likelihood():
+    #     print("input_ids shape:", input_ids.shape)
+    #     print("attention_mask shape:", attention_mask.shape)
+    #     input_ids_ = input_ids.to(model.device)
+    #     attention_mask_ = attention_mask.to(model.device)
+    #     out = model(input_ids=input_ids_, attention_mask=attention_mask_, use_cache=False).logits #(B, L, V)
+    #     B, L, V = out.shape
+    #     logits = out[:, :-1, :] #(B, L-1, V)
+    #     targets = input_ids_[:, 1:] #(B, L-1)
+    #     logits_flat = logits.reshape((B*(L-1), V))
+    #     targets_flat = targets.reshape((B*(L-1))) 
+
+    #     per_token_loss = torch.nn.CrossEntropyLoss(reduction='none')(logits_flat, targets_flat)
+
+    #     per_token_likelihood = (-per_token_loss).reshape((B, L-1))
+    #     return per_token_likelihood.to(model.device)
+    
+    # if not enable_grad:
+    #     with torch.no_grad():
+    #         return get_likelihood()
+    # return get_likelihood()
+    with torch.set_grad_enabled(enable_grad):
+        device = next(model.parameters()).device
+        input_ids = input_ids.to(device)
+        attention_mask = attention_mask.to(device)
+
+        out = model(input_ids=input_ids, attention_mask=attention_mask, use_cache=False)
+        logits = out.logits  # [B, L, V]
+
+        shift_logits = logits[:, :-1, :]  # [B, L-1, V]
+        targets = input_ids[:, 1:]        # [B, L-1]
+
+        B, L_minus_1, V = shift_logits.shape
+        nll = F.cross_entropy(
+            shift_logits.reshape(B * L_minus_1, V),
+            targets.reshape(B * L_minus_1),
+            reduction='none',
+        )  # [B*(L-1)]
+
+        return -nll.reshape(B, L_minus_1)  # [B, L-1]
+    # if not enable_grad:
+    #     with torch.no_grad():
+    #         out = model(input_ids=input_ids, attention_mask=attention_mask, use_cache=False)
+    # else:
+    #     out = model(input_ids=input_ids, attention_mask=attention_mask, use_cache=False)
+    # logits_flattened = out.logits[:, :-1, :].reshape(-1, out.logits.shape[-1])
+    # targets_flattened = input_ids[:, 1:].reshape(-1)
+    # log_probs = -F.cross_entropy(logits_flattened, targets_flattened, reduction='none')
+    # return log_probs.reshape(input_ids.shape[0], input_ids.shape[1] - 1)
 
 
 def build_completion_mask(
@@ -66,7 +115,13 @@ def build_completion_mask(
     # prompt_input_len is the (padded) prompt length before completion tokens were
     # appended. You can use attention_mask to exclude padding; pad_token_id is passed
     # for convenience but a direct attention-mask-based solution is fine.
-    raise NotImplementedError("student TODO: build_completion_mask")
+    device = input_ids.device
+    B, L = input_ids.shape
+
+    prompt_mask = torch.cat([torch.zeros((prompt_input_len-1,)), torch.ones((L-prompt_input_len))])[None, :].to(device)
+    padding_mask = (attention_mask[:, 1:]).to(device)
+
+    return prompt_mask * padding_mask
 
 
 def masked_sum(x: torch.Tensor, mask: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
@@ -110,4 +165,9 @@ def approx_kl_from_logprobs(
     #                             = KL(p_new || p_ref).
     #
     # The clamp to [-20, 20] is for numerical stability / variance control.
-    raise NotImplementedError("student TODO: approx_kl_from_logprobs")
+
+    delta = torch.clip(ref_logprobs - new_logprobs, -log_ratio_clip, log_ratio_clip)
+    per_token_kl = torch.exp(delta) - delta - 1
+    masked_per_token_kl = per_token_kl * mask.float()
+    num_unmasked = torch.sum(mask)
+    return torch.sum(masked_per_token_kl) / num_unmasked
